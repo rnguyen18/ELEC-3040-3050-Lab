@@ -1,0 +1,85 @@
+/*====================================================*/
+/* Ryan Nguyen and Tyler Bishop */
+/* ELEC 3040/3050 - Lab 3, Program 1 */
+/*====================================================*/
+#include "STM32L1xx.h"
+
+int cycles;
+int count;
+int reversecount;
+
+void PinSetup () {
+ RCC->AHBENR |= 0x01; 
+ GPIOA->MODER &= ~(0x0000003C); 
+ 
+ RCC->AHBENR |= 0x04; 
+ GPIOC->MODER &= ~(0x0000FFFF); 
+ GPIOC->MODER |= (0x00005555); 
+
+ GPIOC->MODER &= ~(0x000F0000);
+ GPIOC->MODER |= (0x00050000); 
+}
+
+void delay () {
+ int i,j,n;
+ for (i=0; i<10; i++) { //outer loop
+ for (j=0; j<17500; j++) { //inner loop
+n = j; //dummy operation for single-step test
+ } //do nothing
+ }
+}
+
+void counter(char sw2) {
+	if (sw2 == 0) { 
+			if (count != 9) { 
+				count++; 
+			} else {
+				count = 0; 
+			}
+			if (reversecount != 0) {
+				reversecount--;
+			} else {
+				reversecount = 9;
+			}
+		} else {
+			if (count != 0) { 
+				count--; 
+			} else {
+				count = 9; 
+			}
+			if (reversecount!= 9) {
+				reversecount++;
+			} else {
+				reversecount = 0;
+			}
+		}
+}
+
+/*------------------------------------------------*/
+/* Main program */
+/*------------------------------------------------*/
+int main(void) {
+	unsigned char sw1; 
+	unsigned char sw2; 
+	
+	PinSetup(); 
+	cycles = 0; 
+	count = 0; 
+	reversecount = 0;
+	while (1) {
+		
+		sw1 = GPIOA->IDR & 0x01; 
+		
+		while (sw1 == 0) {
+			sw1 = GPIOA->IDR & 0x01; 
+		}
+		
+		sw2 = GPIOA->IDR & 0x02; 
+		counter(sw2);
+		GPIOC->ODR =(reversecount*16)+count;
+		
+		delay(); 
+		cycles++; 
+		
+	}
+} 
