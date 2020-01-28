@@ -1,0 +1,109 @@
+/*====================================================*/
+/* Ryan Nguyen and Tyler Bishop */
+/* ELEC 3040/3050 - Lab 2, Program 1 */
+/* Switch controlled incrementing and decrementing counter with a 0.5 second delay */
+/*====================================================*/
+#include "STM32L1xx.h" /* Microcontroller information */
+/* Define global variables */
+int cycles; /* number of times the code has cycled */
+int count; /* number of times LED state toggled */
+/*---------------------------------------------------*/
+/* Initialize GPIO pins used in the program */
+/* PA1 and PA2 = Switches */
+/* PC0-PC3 = BCD LEDs */
+/*---------------------------------------------------*/
+void PinSetup () {
+ RCC->AHBENR |= 0x01; /* Enable GPIOA clock (bit 0) */
+ GPIOA->MODER &= ~(0x0000003C); /* General purpose input mode for PA1 and PA2 */
+ 
+ RCC->AHBENR |= 0x04; /* Enable GPIOC clock (bit 2) */
+ GPIOC->MODER &= ~(0x000000FF); /* Clear PC0-PC3 mode bits */
+ GPIOC->MODER |= (0x00000055); /* General purpose output mode*/
+
+ GPIOC->MODER &= ~(0x000F0000); /* Clear PC9-PC8 mode bits */
+ GPIOC->MODER |= (0x00050000); /* General purpose output mode*/
+}
+/*----------------------------------------------------------*/
+/* Delay function - do nothing for about 0.5 second */
+/*----------------------------------------------------------*/
+void delay () {
+ int i,j,n;
+ for (i=0; i<10; i++) { //outer loop
+ for (j=0; j<20000; j++) { //inner loop
+n = j; //dummy operation for single-step test
+ } //do nothing
+ }
+}
+/*----------------------------------------------------------*/
+/* Counter function - increments or decrements the count variable */
+/*----------------------------------------------------------*/
+void counter(char sw2) {
+	if (sw2 == 0) { // Check if decrementing or incrementing
+			if (count != 9) { // Check if counter is at top margin
+				count++; // Increment Counter
+			} else {
+				count = 0; // Reset counter to minimum
+			}
+		} else {
+			if (count != 0) { // Check if counter is at bottom margin
+				count--; // Decrement Counter
+			} else {
+				count = 9; // Reset counter to maximum
+			}
+		}
+}
+/*----------------------------------------------------------*/
+/* Display function - displays the value of count */
+/*----------------------------------------------------------*/
+void display() {
+	if (count % 2 == 1) {
+		GPIOC->BSRR = 0x08; // Turn on Bit 0
+	} else {
+		GPIOC->BSRR = 0x08 << 16; // Turn off Bit 0
+	}
+	
+	if (count == 2 || count == 3 || count == 6 || count == 7) {
+		GPIOC->BSRR = 0x04; // Turn on Bit 1
+	} else {
+		GPIOC->BSRR = 0x04 << 16; // Turn off Bit 1
+	}
+	
+	if (count == 4 || count == 5 || count == 6 || count == 7) {
+		GPIOC->BSRR = 0x02; // Turn on Bit 2
+	} else {
+		GPIOC->BSRR = 0x02 << 16; // Turn off Bit 2
+	}
+	
+	if (count == 8 || count == 9) {
+		GPIOC->BSRR = 0x01; // Turn on Bit 3
+	} else {
+		GPIOC->BSRR = 0x01 << 16; // Turn off Bit 3
+	}
+}
+/*------------------------------------------------*/
+/* Main program */
+/*------------------------------------------------*/
+int main(void) {
+	unsigned char sw1; //state of SW1
+	unsigned char sw2; //state of SW2
+	
+	PinSetup(); // Configure GPIO pins
+	cycles = 0; // number of times the code has cycled
+	count = 0; // Resets the counter
+	while (1) {
+		
+		sw1 = GPIOA->IDR & 0x02; //Read GPIOA and mask all but bit 1
+		
+		while (sw1 == 0) {
+			sw1 = GPIOA->IDR & 0x02; //Read GPIOA and mask all but bit 1
+		}
+		
+		sw2 = GPIOA->IDR & 0x04; //Read GPIOA and mask all but bit 2
+		counter(sw2);
+		display();
+		
+		delay(); //Time delay for button release
+		cycles++; //Increment #times LED toggled
+		
+	} /* repeat forever */
+} 
