@@ -7,6 +7,8 @@
 int cycles;
 int count;
 int reversecount;
+unsigned char sw1; 
+unsigned char sw2; 
 
 void PinSetup () {
 	RCC->AHBENR |= 0x01; // Sets up the Inputs
@@ -16,23 +18,28 @@ void PinSetup () {
 	GPIOC->MODER &= ~(0x000FFFFF); 
 	GPIOC->MODER |= (0x00055555); 
 	
-	int IRQn = 6; // Which IRQ to use
-	
-	NVIC_EnableIRQ (IRQn);
-	NVIC_ClearPendingIRQ (IRQn); 
+	NVIC_EnableIRQ (6);
+	NVIC_ClearPendingIRQ (6); 
+	NVIC_EnableIRQ (7);
+	NVIC_ClearPendingIRQ (7); 
 
-	SYSCFG->EXTICR[0] &= 0xFFF0;
+	SYSCFG->EXTICR[0] &= 0xFF00;
 	SYSCFG->EXTICR[0] |= 0x0000; 
 
-	EXTI->RTSR |=0x0001;
-	EXTI->IMR |=0x0001;
+	EXTI->RTSR |=0x0003;
+	EXTI->IMR |=0x0003;
 
-	__enable_irq(); 
+	__enable_irq();
 }
 
-void EXTI6_IRQHandler () { 
-	
+void EXTI0_IRQHandler () { 
+	sw1 = !sw1;
 	EXTI->PR |= 0x0001;
+}
+
+void EXTI1_IRQHandler () { 
+	sw2 = !sw2;
+	EXTI->PR |= 0x0002;
 }
 
 void delay () {
@@ -80,28 +87,23 @@ void counter(char sw2) {
 /* Main program */
 /*------------------------------------------------*/
 int main(void) {
-	unsigned char sw1; 
-	unsigned char sw2; 
 	
 	PinSetup(); 
 	cycles = 0; 
 	count = 0; 
 	reversecount = 0;
+	sw1 = 0;
+	sw2 = 0;
+	
 	while (1) {
 		
-		sw1 = GPIOA->IDR & 0x01; 
-		
 		while (sw1 == 0) {
-			// sw1 = GPIOA->IDR & 0x01; 
-			
+			cycles++;
 		}
-		
-		sw2 = GPIOA->IDR & 0x02; 
+		 
 		counter(sw2);
 		GPIOC->ODR =(reversecount*16)+count;
-		
 		delay(); 
-		cycles++; 
 		
 	}
 } 
