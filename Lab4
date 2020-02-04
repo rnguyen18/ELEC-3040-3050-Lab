@@ -34,6 +34,13 @@ void PinSetup () {
 
 void EXTI0_IRQHandler () { 
 	sw1 = !sw1;
+	if (sw1 == 1) {
+		GPIOC->BSRR = 0x0200;
+		GPIOC->BSRR = 0x0100 << 16; //Reset PC8=0 to turn OFF blue LED (in BSRR upper half)
+	} else {
+		GPIOC->BSRR = 0x0200 << 16;
+		GPIOC->BSRR = 0x0100; //Set PC8=1 to turn ON blue LED (in BSRR low half) 
+	}
 	EXTI->PR |= 0x0001;
 }
 
