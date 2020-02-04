@@ -9,6 +9,7 @@ int count;
 int reversecount;
 unsigned char sw1; 
 unsigned char sw2; 
+unsigned char sw; 
 
 void PinSetup () {
 	RCC->AHBENR |= 0x01; // Sets up the Inputs
@@ -18,10 +19,10 @@ void PinSetup () {
 	GPIOC->MODER &= ~(0x000FFFFF); 
 	GPIOC->MODER |= (0x00055555); 
 	
-	NVIC_EnableIRQ (6);
-	NVIC_ClearPendingIRQ (6); 
-	NVIC_EnableIRQ (7);
-	NVIC_ClearPendingIRQ (7); 
+	NVIC_EnableIRQ(EXTI0_IRQn);
+	NVIC_ClearPendingIRQ(EXTI0_IRQn);
+	NVIC_EnableIRQ (EXTI1_IRQn);
+	NVIC_ClearPendingIRQ (EXTI1_IRQn); 
 
 	SYSCFG->EXTICR[0] &= 0xFF00;
 	SYSCFG->EXTICR[0] |= 0x0000; 
@@ -34,18 +35,25 @@ void PinSetup () {
 
 void EXTI0_IRQHandler () { 
 	sw1 = !sw1;
-	if (sw1 == 1) {
-		GPIOC->BSRR = 0x0200;
-		GPIOC->BSRR = 0x0100 << 16; //Reset PC8=0 to turn OFF blue LED (in BSRR upper half)
+	sw = 1;
+	if (sw1 == 0) {
+			GPIOC->BSRR = 0x0100 << 16; 
 	} else {
-		GPIOC->BSRR = 0x0200 << 16;
-		GPIOC->BSRR = 0x0100; //Set PC8=1 to turn ON blue LED (in BSRR low half) 
+			GPIOC->BSRR = 0x0100; 
 	}
+	NVIC_ClearPendingIRQ(EXTI0_IRQn);
 	EXTI->PR |= 0x0001;
 }
 
 void EXTI1_IRQHandler () { 
 	sw2 = !sw2;
+	sw = 0;
+	if (sw2 == 0) {
+			GPIOC->BSRR = 0x0200 << 16; 
+	} else {
+			GPIOC->BSRR = 0x0200; 
+	}
+	NVIC_ClearPendingIRQ(EXTI1_IRQn);
 	EXTI->PR |= 0x0002;
 }
 
@@ -58,36 +66,36 @@ void delay () {
 	}
 }
 
-void counter(char sw2) {
-	if (sw2 == 0) { 
-			if (count != 9) { 
-				count++; 
+void counter() {
+	if (count != 9) { 
+		count++; 
+	} else {
+		count = 0; 
+	}/*else {
+		if (count != 0) { 
+			count--; 
+		} else {
+			count = 9; 
+		}
+	}*/
+		
+	if (count%2==1) {
+		if (sw == 0) {
+			if (reversecount!= 9) {
+					reversecount++;
 			} else {
-				count = 0; 
+				reversecount = 0;
 			}
-			
-			delay(); 
-			
+		} else {
 			if (reversecount != 0) {
 				reversecount--;
 			} else {
 				reversecount = 9;
 			}
-		} else {
-			if (count != 0) { 
-				count--; 
-			} else {
-				count = 9; 
-			}
-			
-			delay(); 
-			
-			if (reversecount!= 9) {
-				reversecount++;
-			} else {
-				reversecount = 0;
-			}
 		}
+	}
+	GPIOC->ODR =(sw2*512)+(sw1*256)+(reversecount*16)+count;
+	delay(); 
 }
 
 /*------------------------------------------------*/
@@ -103,14 +111,8 @@ int main(void) {
 	sw2 = 0;
 	
 	while (1) {
-		
-		while (sw1 == 0) {
-			cycles++;
-		}
 		 
-		counter(sw2);
-		GPIOC->ODR =(reversecount*16)+count;
-		delay(); 
+		counter();
 		
 	}
 } 
