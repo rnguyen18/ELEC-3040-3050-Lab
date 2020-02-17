@@ -4,10 +4,11 @@
 /*====================================================*/
 #include "STM32L1xx.h"
 
-int seconds;
-int decimal;
+int timer;
 int dummy;
 int state;
+const int psc_value = 15;
+const int arr_value = 13981;
 
 void setupKeypad() {
 	RCC->AHBENR |= 0x02; // Sets up the Keypad
@@ -29,6 +30,15 @@ void setupKeypad() {
 	__enable_irq();
 }
 
+void setupTimer() {
+	RCC->APB1ENR |= RCC_APB1ENR_TIM4EN;
+	TIM4->PSC = psc_value;
+	TIM4->ARR = arr_value;
+	NVIC_EnableIRQ(TIM4_IRQn);
+	TIM4->CR1 |= TIM_CR1_CEN;
+	NVIC_ClearPendingIRQ(TIM4_IRQn); 
+}
+
 void PinSetup () {
 	RCC->AHBENR |= 0x01; // Sets up the Inputs
 	GPIOA->MODER &= ~(0x0000000C); // Setups up PA1 as an Input
@@ -37,6 +47,7 @@ void PinSetup () {
 	GPIOC->MODER &= ~(0x000000FF); 
 	GPIOC->MODER |= (0x00000055); 
 	
+	setupTimer();
 	setupKeypad();
 }
 
@@ -186,19 +197,26 @@ int readKeypad() {
 }
 
 void displayTimer() {
-	GPIOC->ODR = seconds*16+milliseconds;
+	int seconds = (timer%100-(timer%9))/10;
+	int decimal = timer%9;
+	GPIOC->ODR = seconds*16+decimal;
 }
 
 void clear() {
 	if (state == 0) {
-		seconds = 0;
-		milliseconds = 0;
+		timer = 0;
 		displayTimer();
 	}
 }
 
 void start() {
 	state = !state
+	
+	if (state == 0) {
+		TIM4->DIER &= ~0x01;
+	} else {
+		TIM4->DIER |= 0x01;
+	}
 }
 
 void EXTI1_IRQHandler () {
@@ -214,29 +232,31 @@ void EXTI1_IRQHandler () {
 	EXTI->PR |= 0x0002;
 }
 
+void TIM4_IRQHandler() {
+	
+	timer++;
+	
+	displayTimer();
+	
+	if (state == 1) {
+		NVIC_ClearPendingIRQ(TIM4_IRQn); 
+	}
+}
+
 /*------------------------------------------------*/
 /* Main program */
 /*------------------------------------------------*/
 int main(void) {
 	
 	PinSetup();
-	seconds = 0;
-	decimal = 0;
+	timer = 0;
+	state = 0;
+	//decimal = 0;
 	
 	displayTimer();
 	while (1) {
 		
-		while (state == 0) {
-			dummy++;
-		}
-		delay(0.1);
-		if (decimal < 9) {
-			decimal++;
-		} else {
-			decimal = 0;
-			seconds++;
-		}
-		displayTimer();
+		dummy++;
 		
 	}
 } 
