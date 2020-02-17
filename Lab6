@@ -233,13 +233,9 @@ void EXTI1_IRQHandler () {
 }
 
 void TIM4_IRQHandler() {
-	
-	timer++;
-	
-	displayTimer();
-	
 	if (state == 1) {
-		NVIC_ClearPendingIRQ(TIM4_IRQn); 
+		timer++;
+		displayTimer();
 	}
 }
 
