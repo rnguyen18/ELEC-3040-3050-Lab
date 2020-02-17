@@ -185,10 +185,15 @@ int readKeypad() {
 	return key;
 }
 
+void displayTimer() {
+	GPIOC->ODR = seconds*16+milliseconds;
+}
+
 void clear() {
 	if (state == 0) {
 		seconds = 0;
 		milliseconds = 0;
+		displayTimer();
 	}
 }
 
@@ -207,10 +212,6 @@ void EXTI1_IRQHandler () {
 	
 	NVIC_ClearPendingIRQ(EXTI1_IRQn);
 	EXTI->PR |= 0x0002;
-}
-
-void displayTimer() {
-	GPIOC->ODR = seconds*16+milliseconds;
 }
 
 /*------------------------------------------------*/
