@@ -226,10 +226,10 @@ int main(void) {
 	displayTimer();
 	while (1) {
 		
-		delay(0.1);
 		while (state == 0) {
 			dummy++;
 		}
+		delay(0.1);
 		if (decimal < 9) {
 			decimal++;
 		} else {
