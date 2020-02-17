@@ -247,12 +247,7 @@ int main(void) {
 	PinSetup();
 	timer = 0;
 	state = 0;
-	//decimal = 0;
 	
 	displayTimer();
-	while (1) {
-		
-		dummy++;
-		
-	}
+
 } 
