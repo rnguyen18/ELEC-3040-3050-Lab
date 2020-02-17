@@ -101,89 +101,88 @@ void EXTI1_IRQHandler () {
 	 //if (reset == 0) {
 		int row = readRow();
 		int col = readColumn();
-		
+		int tempKey = -1;
 		dummy=5;
 		switch (row) {
 			case 1:
 				switch (col) {
 					case 1:
-						key = 1;
+						tempKey = 1;
 						break;
 					case 2:
-						key = 2;
+						tempKey = 2;
 						break;
 					case 3:
-						key = 3;
+						tempKey = 3;
 						break;
 					case 4:
-						key = 10;
+						tempKey = 10;
 						break;
 					default:
-						key = -1;
+						tempKey = -1;
 				}
 			break;
 				case 2:
 				switch (col) {
 					case 1:
-						key = 4;
+						tempKey = 4;
 						break;
 					case 2:
-						key = 5;
+						tempKey = 5;
 						break;
 					case 3:
-						key = 6;
+						tempKey = 6;
 						break;
 					case 4:
-						key = 11;
+						tempKey = 11;
 						break;
 					default:
-						key = -1;
+						tempKey = -1;
 				}
 			break;
 				case 3:
 				switch (col) {
 					case 1:
-						key = 7;
+						tempKey = 7;
 						break;
 					case 2:
-						key = 8;
+						tempKey = 8;
 						break;
 					case 3:
-						key = 9;
+						tempKey = 9;
 						break;
 					case 4:
-						key = 12;
+						tempKey = 12;
 						break;
 					default:
-						key = -1;
+						tempKey = -1;
 				}
 			break;
 				case 4:
 				switch (col) {
 					case 1:
-						key = 15;
+						tempKey = 15;
 						break;
 					case 2:
-						key = 0;
+						tempKey = 0;
 						break;
 					case 3:
-						key = 14;
+						tempKey = 14;
 						break;
 					case 4:
-						key = 13;
+						tempKey = 13;
 						break;
 					default:
-						key = -1;
+						tempKey = -1;
 				}
 			break;
 					default:
-						key = -1;
+						tempKey = -1;
 		}
 	
-		if (key != -1) {
+		if (tempKey != -1) {
+			key = tempKey;
 			reset = 5;
-		} else {
-			reset = 0;
 		}
 		
 		RCC->AHBENR |= 0x02; // Sets up the Keypad
