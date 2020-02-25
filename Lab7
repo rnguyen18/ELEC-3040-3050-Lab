@@ -50,6 +50,7 @@ void PinSetup () {
 	GPIOA->MODER |= 0x00002000;
 	GPIOA->AFR[0] &= ~0x0F000000;
 	GPIOA->AFR[0] |= 0x03000000;
+	GPIOA->MODER &= ~(0x0000000C); // Setups up PA1 as an Input
 	
 	RCC->AHBENR |= 0x04; // Sets up the LED Outputs
 	GPIOC->MODER &= ~(0x000000FF); 
@@ -57,13 +58,6 @@ void PinSetup () {
 	
 	setupTimer();
 	setupKeypad();
-}
-
-void delay (double seconds) {
-	int i,j,n;
-	for (i=0; i<17500*seconds; i++) {
-		n = i;
-	}
 }
 
 int readColumn() {
