@@ -4,10 +4,6 @@
 /*====================================================*/
 #include "STM32L1xx.h"
 
-int timer;
-int dummy;
-int state;
-int test;
 int arr = 0x3352;
 
 void setupKeypad() {
@@ -223,10 +219,7 @@ void TIM10_IRQHandler() {
 int main(void) {
 	
 	PinSetup();
-	timer = 0;
-	state = 0;
-	test=0;
-	displayTimer();
+	
 	while (1) {
 		dummy++;
 	}
