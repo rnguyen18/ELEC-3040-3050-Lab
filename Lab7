@@ -42,7 +42,6 @@ void setupTimer() {
 	
 	TIM10->CCMR1 = 0x70;
 	TIM10->CCER = 0x1
-	
 }
 
 void PinSetup () {
@@ -51,6 +50,10 @@ void PinSetup () {
 	GPIOA->MODER |= 0x00002000;
 	GPIOA->AFR[0] &= ~0x0F000000;
 	GPIOA->AFR[0] |= 0x03000000;
+	
+	RCC->AHBENR |= 0x04; // Sets up the LED Outputs
+	GPIOC->MODER &= ~(0x000000FF); 
+	GPIOC->MODER |= (0x00000055); 
 	
 	setupTimer();
 	setupKeypad();
@@ -206,7 +209,7 @@ void displayTimer() {
 
 void EXTI1_IRQHandler () {
 	int key = readKeypad();
-	
+	GPIOC->ODR = key;
 	float multiplier = key/10;
 	
 	TIM10->CCRy = multiplier*arr;
@@ -216,7 +219,6 @@ void EXTI1_IRQHandler () {
 }
 
 void TIM10_IRQHandler() {
-	
 	TIM10->SR &= ~TIM_SR_UIF;
 	NVIC_ClearPendingIRQ(TIM10_IRQn);
 }
