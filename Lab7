@@ -5,7 +5,8 @@
 #include "STM32L1xx.h"
 
 int dummy;
-int arr = 0x3352;
+float mult = 1.0;
+int arr = 2102; // Timing for 1kHz
 
 void setupKeypad() {
 	RCC->AHBENR |= 0x02; // Sets up the Keypad
@@ -29,16 +30,16 @@ void setupKeypad() {
 
 void setupTimer() {
 	RCC->APB2ENR |= RCC_APB2ENR_TIM10EN;
-	TIM10->PSC = 0xF;
+	TIM10->PSC = 0x0;
 	TIM10->ARR = arr;
-	TIM10->CCRy = 0x0;
+	TIM10->CCR1 = 0x0;
 	TIM10->DIER |= TIM_DIER_UIE;
 	NVIC_EnableIRQ(TIM10_IRQn);
 	TIM10->CR1 |= TIM_CR1_CEN;
 	NVIC_ClearPendingIRQ(TIM10_IRQn); 
 	
 	TIM10->CCMR1 = 0x70;
-	TIM10->CCER = 0x1
+	TIM10->CCER = 0x3;
 }
 
 void PinSetup () {
@@ -192,18 +193,14 @@ int readKeypad() {
 	return key;
 }
 
-void displayTimer() {
-	int decimal = timer%10;
-	int seconds = (timer%100-decimal)/10;
-	GPIOC->ODR = (test%2)*256+(seconds*16+decimal);
-}
-
 void EXTI1_IRQHandler () {
-	int key = readKeypad();
-	GPIOC->ODR = key;
-	float multiplier = key/10;
+	float key = readKeypad();
 	
-	TIM10->CCRy = multiplier*arr;
+	if (key != -1) {
+		GPIOC->ODR = key;
+		float multiplier = key/10.0;
+		TIM10->CCR1 = multiplier*arr;
+	}
 	
 	NVIC_ClearPendingIRQ(EXTI1_IRQn);
 	EXTI->PR |= 0x0002;
@@ -218,7 +215,7 @@ void TIM10_IRQHandler() {
 /* Main program */
 /*------------------------------------------------*/
 int main(void) {
-	
+	arr = mult*arr;
 	PinSetup();
 	dummy = 0;
 	
