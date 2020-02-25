@@ -4,6 +4,7 @@
 /*====================================================*/
 #include "STM32L1xx.h"
 
+int dummy;
 int arr = 0x3352;
 
 void setupKeypad() {
@@ -219,6 +220,7 @@ void TIM10_IRQHandler() {
 int main(void) {
 	
 	PinSetup();
+	dummy = 0;
 	
 	while (1) {
 		dummy++;
